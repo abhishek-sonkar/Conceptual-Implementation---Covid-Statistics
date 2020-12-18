@@ -7,6 +7,7 @@ const port = 8080
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 const { connection } = require('./connector');
+
 const covidTallyModel = connection;
 
 app.get('/totalRecovered', async (req, res) => {
@@ -16,7 +17,7 @@ app.get('/totalRecovered', async (req, res) => {
                 _id: "total",
                 //accumulator
                 //resultKey: { $accumulationOperatior: "$field to accumulate" or a constant value }
-                recovered: { $sum: $recovered }
+                recovered: { $sum: "$recovered" }
             }
         }
     ]);
@@ -29,13 +30,13 @@ app.get('/totalActive', async (req, res) => {
         {
             $group: {
                 _id: "total",
-                recovered: { $sum: $recovered },
-                infected: { $sum: $infected }
+                recovered: { $sum: "$recovered" },
+                infected: { $sum: "$infected" }
             }
         }
     ]);
     const result = requiredData[0];
-    res.send( { data: { _id: "total", active:result.infected - result.$recovered } } );
+    res.send( { data: { _id: "total", active:result.infected - result.recovered } } );
 });
 
 app.get('/totalDeath', async (req, res) => {
@@ -43,7 +44,7 @@ app.get('/totalDeath', async (req, res) => {
         {
             $group: {
                 _id: "total",
-                death: { $sum: $death }
+                death: { $sum: "$death" }
             }
         }
     ]);
@@ -58,12 +59,13 @@ app.get('/hotspotStates', async (req, res) => {
                 state: "$state",
                 rate: {
                     $round: [{ 
-                        $divide: [{
-                            $subtract: ["$infected", "$recovered"] 
-                        }, "$infected",],
+                        $divide: [
+                            { $subtract: ["$infected", "$recovered"] },
+                            "$infected",
+                        ],
                     }, 5,] 
-                }
-            }
+                },
+            },
         },
         {
             $match: {
@@ -83,10 +85,11 @@ app.get('/healthyStates', async (req, res) => {
                 mortality: {
                     $round: [{ 
                         $divide: [
-                            "death", "$infected"]
-                    }, 5,]
-                }
-            }
+                            "$death", "$infected",
+                        ],
+                    }, 5]
+                },
+            },
         },
         {
             $match: {
