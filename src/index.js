@@ -73,8 +73,7 @@ app.get('/hotspotStates', async (req, res) => {
             },
         }
     ]);
-    const result = requiredData[0];
-    res.send( { data: result } );
+    res.send( { data: requiredData } );
 });
 
 app.get('/healthyStates', async (req, res) => {
@@ -97,8 +96,7 @@ app.get('/healthyStates', async (req, res) => {
             },
         }
     ]);
-    const result = requiredData[0];
-    res.send( { data: result } );
+    res.send( { data: requiredData } );
 });
 
 
